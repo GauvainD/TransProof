@@ -2,4 +2,5 @@ build/
 *.db
 *.csv
 *.o
+*.class
 transproof
