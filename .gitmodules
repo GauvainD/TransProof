@@ -1,0 +1,3 @@
+[submodule "phoeg"]
+	path = phoeg
+	url = https://github.com/GauvainD/phoeg.git
