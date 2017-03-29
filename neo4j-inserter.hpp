@@ -40,6 +40,7 @@ protected :
     int threads;
     bool firstRel;
     jstring resTrs;
+    jstring orderTrs;
     jstring label;
 
     void initEnv(int threadNum, JNIEnv *env)
@@ -185,6 +186,7 @@ public :
         initInserter();
         label = envs[0].env->NewStringUTF("GRAPH");
         resTrs = envs[0].env->NewStringUTF("g");
+        orderTrs = envs[0].env->NewStringUTF("order");
         envs[0].env->NewGlobalRef(inserter);
         envs[0].env->NewGlobalRef(hashmap);
     }
@@ -242,7 +244,7 @@ public :
         return n;
     }
 
-    void addRelationship(int threadNum, jlong n1, jlong n2, std::string type, jlong g)
+    void addRelationship(int threadNum, jlong n1, jlong n2, std::string type, jlong g, jlong order)
     {
         struct jnienv env = envs[threadNum];
         env.env->CallLongMethod(hashmap, env.clear);
@@ -250,6 +252,9 @@ public :
         //jstring ord1 = env.env->NewStringUTF(order.c_str());
         jobject new_val = env.env->NewObject(env.integer, env.integerconst, g);
         env.env->CallVoidMethod(hashmap, env.put, resTrs, new_val);
+        env.env->DeleteLocalRef(new_val);
+        new_val = env.env->NewObject(env.integer, env.integerconst, order);
+        env.env->CallVoidMethod(hashmap, env.put, orderTrs, new_val);
         env.env->DeleteLocalRef(new_val);
         jobject relType = makeType(env, type);
         env.env->CallLongMethod(inserter, env.createRelationship, n1, n2, relType, hashmap);

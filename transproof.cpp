@@ -26,7 +26,7 @@ using namespace std;
 using namespace phoeg;
 
 typedef function<vector<struct transformation_result>(const Graph&)> transformation;
-typedef function<struct filter_result(const string&, const Graph&)> filter;
+typedef function<struct filter_result(const Graph&)> filter;
 typedef map<string, map<string, struct invariant_value> > node_list;
 
 struct transformation_entry
@@ -46,6 +46,7 @@ struct transfo_data_result
 vector<filter> filters;
 vector<struct transformation_entry> transfos;
 map<string, jlong> objects;
+map<unsigned long long int, jlong> graphs;
 node_list nodes;
 std::mutex mtx;
 Neo4jInserter neo;
@@ -268,6 +269,7 @@ void loadGraphs(vector<string> &keys, node_list &nodes, map<string, jlong> &obje
             string sig = parseLine(line, keys, nodes);
             jlong n = neo.createNode(0, nodes[sig]);
             objects.emplace(sig, n);
+            graphs.emplace(g6toInt(sig), n);
         }
         catch (invalid_argument const& e)
         {
@@ -292,13 +294,13 @@ void addTransfos(vector<struct transfo_data_result> &transfos, map<string, jlong
         Graph res = convertFromGraph6(trs.end);
         long n = order(res);
         long gc = graphToInt(res);
-        res = cannonForm(res);
-        string resG6 = convertToGraph6(res);
-        struct filter_result fres = filters[i](resG6, res);
+        int order[n];
+        res = cannonFormOrder(res, order);
+        struct filter_result fres = filters[i](res);
         while (i < filters.size() && !fres.result)
         {
             i++;
-            fres = filters[i](resG6, res);
+            fres = filters[i](res);
         }
         jlong n1 = objects[trs.start];
         jlong n2;
@@ -314,7 +316,7 @@ void addTransfos(vector<struct transfo_data_result> &transfos, map<string, jlong
         {
             n2 = objects[fres.dest];
         }
-        neo.addRelationship(threadNum, n1, n2, trs.type, gc);
+        neo.addRelationship(threadNum, n1, n2, trs.type, gc, orderToInt(order, n));
     }
     transfos.clear();
     mtx.unlock();
@@ -425,9 +427,9 @@ int main(int argc, char *argv[])
     //Vector containing the filters.
     //The first filter should always be isGraphInList
     //And the last one should be trashNode
-    filters.push_back(bind(isGraphInList, nodes, placeholders::_1, placeholders::_2));
+    filters.push_back(bind(isGraphInList, graphs, placeholders::_1));
     //Add your filters here
-    filters.push_back(bind(trashNode, "TRASH", placeholders::_1, placeholders::_2));
+    filters.push_back(bind(trashNode, "TRASH", placeholders::_1));
     int ncores = std::thread::hardware_concurrency();
     std::vector<std::thread> threads;
     for (int i = 0; i < ncores - 1; i++)

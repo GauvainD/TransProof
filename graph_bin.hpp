@@ -142,6 +142,23 @@ unsigned long long int g6toInt(const std::string & s)
     return numg;
 }
 
+unsigned long long int orderToInt(int order[], int n)
+{
+    unsigned long long int res = 0;
+    for (int i = n-1; i >=0 ; --i) {
+        res = (res << 4) + order[i];
+    }
+    return res;
+}
+
+void intToOrder(unsigned long long int val, int order[], int n)
+{
+    for (int i = 0; i < n; ++i) {
+        order[i] = val & 15;
+        val = val >> 4;
+    }
+}
+
 
 } // namespace phoeg
 

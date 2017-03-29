@@ -1,7 +1,10 @@
 #ifndef FILTER_TEST_HPP
 #define FILTER_TEST_HPP
 
+#include <jni.h>
 #include "graph.hpp"
+#include "graph6.hpp"
+#include "graph_bin.hpp"
 #include <boost/variant.hpp>
 
 enum types
@@ -22,19 +25,23 @@ struct invariant_value
 struct filter_result
 {
     bool result;
+    bool isGraph;
     std::string dest;
+    unsigned long long int graph;
 };
 
-struct filter_result isGraphInList(const std::map<std::string, std::map<std::string, struct invariant_value> > &nodes, const std::string &g6, const phoeg::Graph &g)
+struct filter_result isGraphInList(const std::map<unsigned long long int, jlong > &nodes, const phoeg::Graph &g)
 {
-    bool result = nodes.count(g6);
-    struct filter_result res = {result, g6};
+    unsigned long long int gi = phoeg::graphToInt(g);
+    std::string g6 = phoeg::convertToGraph6(g);
+    bool result = nodes.count(gi);
+    struct filter_result res = {result, true, g6, gi};
     return res;
 }
 
-struct filter_result trashNode(const std::string &trashName, const std::string &g6, const phoeg::Graph &g)
+struct filter_result trashNode(const std::string &trashName, const phoeg::Graph &g)
 {
-    struct filter_result res = {true, trashName};
+    struct filter_result res = {true, false, trashName, 0};
     return res;
 }
 
