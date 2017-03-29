@@ -16,15 +16,15 @@ VPATH = $(java_dir):$(build_dir)
 
 .PHONY: default init clean
 
-default : init Main.class comptransproof run
+default : init Neo4jAdapter.class comptransproof run
 
-run: init Main.class comptransproof
+run: init Neo4jAdapter.class comptransproof
 ifneq ("$(wildcard test5.db/.)","")
 	rm -r test5.db
 endif
 	./transproof res5.csv
 
-test: init Main.class comptest
+test: init Neo4jAdapter.class comptest
 	./test
 
 debug:
@@ -46,8 +46,8 @@ comppathshow: utils/pathshow.cpp
 compordcomp: utils/ordcomp.cpp
 	g++ -std=c++11 -g -Llib -I. -o ordcomp utils/ordcomp.cpp nauty.h -pthread -lnauty
 
-# runJava: Main.class
-# @$(java) -cp $(classpath) Main
+# runJava: Neo4jAdapter.class
+# @$(java) -cp $(classpath) Neo4jAdapter
 
 init: clean
 	@if ! [ -d "$(build_dir)/" ]; then\

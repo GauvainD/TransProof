@@ -57,7 +57,7 @@ protected :
             jclass mapClass = env->FindClass("java/util/HashMap");
             envstr.put = env->GetMethodID(mapClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
             envstr.clear = env->GetMethodID(mapClass, "clear", "()V");
-            envstr.main = env->FindClass("Main");
+            envstr.main = env->FindClass("Neo4jAdapter");
             envstr.makenode = env->GetStaticMethodID(envstr.main, "createNode", "(Lorg/neo4j/unsafe/batchinsert/BatchInserter;Ljava/util/Map;Ljava/lang/String;)J");
             envstr.types = env->FindClass("org/neo4j/graphdb/RelationshipType");
             envstr.withname = env->GetStaticMethodID(envstr.types, "withName", "(Ljava/lang/String;)Lorg/neo4j/graphdb/RelationshipType;");
@@ -227,11 +227,11 @@ public :
 
     void detach(int threadNum)
     {
-        fprintf(stderr, "test %d\n", threadNum);
+        //fprintf(stderr, "test %d\n", threadNum);
         jvm->DetachCurrentThread();
         struct jnienv env;
         envs[threadNum] = env;
-        fprintf(stderr, "test %d\n", threadNum);
+        //fprintf(stderr, "test %d\n", threadNum);
     }
 
     jlong createNode(int threadNum, std::map<std::string, struct invariant_value> props)
