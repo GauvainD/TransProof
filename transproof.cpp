@@ -37,8 +37,8 @@ struct transformation_entry
 
 struct transfo_data_result
 {
-    string start;
-    string end;
+    unsigned long long int start;
+    unsigned long long int end;
     string type;
     string desc;
 };
@@ -267,8 +267,8 @@ void loadGraphs(vector<string> &keys, node_list &nodes, map<string, jlong> &obje
         {
             getline(cin, line);
             string sig = parseLine(line, keys, nodes);
-            jlong n = neo.createNode(0, nodes[sig]);
-            objects.emplace(sig, n);
+            jlong n = neo.createNode(0, nodes[sig], true);
+            //objects.emplace(sig, n);
             graphs.emplace(g6toInt(sig), n);
         }
         catch (invalid_argument const& e)
@@ -291,7 +291,8 @@ void addTransfos(vector<struct transfo_data_result> &transfos, map<string, jlong
         //We suppose that the last filter is trashNode wich always accept
         //And the first one is isGraphInList
         long i = 0;
-        Graph res = convertFromGraph6(trs.end);
+        Graph res(getOrderBin(trs.end));
+        binToGraph(trs.end, res);
         long n = order(res);
         long gc = graphToInt(res);
         int order[n];
@@ -302,19 +303,26 @@ void addTransfos(vector<struct transfo_data_result> &transfos, map<string, jlong
             i++;
             fres = filters[i](res);
         }
-        jlong n1 = objects[trs.start];
+        jlong n1 = graphs[trs.start];
         jlong n2;
-        if (!objects.count(fres.dest))
+        if (!fres.isGraph && !objects.count(fres.dest))
         {
             struct invariant_value val = {.type = STRING, .val = fres.dest};
             std::map<string, struct invariant_value> mp;
             mp.emplace("sig", val);
-            n2 = neo.createNode(threadNum, mp);
+            n2 = neo.createNode(threadNum, mp, false);
             objects.emplace(fres.dest, n2);
         }
         else
         {
-            n2 = objects[fres.dest];
+            if (!fres.isGraph)
+            {
+                n2 = objects[fres.dest];
+            }
+            else
+            {
+                n2 = graphs[fres.graph];
+            }
         }
         neo.addRelationship(threadNum, n1, n2, trs.type, gc, orderToInt(order, n));
     }
@@ -325,21 +333,22 @@ void addTransfos(vector<struct transfo_data_result> &transfos, map<string, jlong
 void computeTransformations(int threadNum, int start, int inc)
 {
     long n = start;
-    long step = max(100, nodes.size() / 100);
+    long step = max(100, graphs.size() / 100);
     //long step = 1;
     if (threadNum == 0)
     {
         fprintf(stderr, "  0%%\n");
     }
-    auto node = nodes.begin();
+    auto node = graphs.begin();
     vector<struct transfo_data_result> toAdd;
-    if (n < nodes.size())
+    if (n < graphs.size())
     {
         std::advance(node, start);
     }
-    while (n < nodes.size())
+    while (n < graphs.size())
     {
-        Graph g = convertFromGraph6(node->first);
+        Graph g(getOrderBin(node->first));
+        binToGraph(node->first, g);
         for (auto transfo : transfos)
         {
             auto results = transfo.transfo(g);
@@ -349,7 +358,7 @@ void computeTransformations(int threadNum, int start, int inc)
                 //And the first one is isGraphInList
                 long i = 0;
                 string resG6 = convertToGraph6(result.g);
-                struct transfo_data_result trs = {.start = node->first, .end = resG6, .type = transfo.name, .desc = result.desc};
+                struct transfo_data_result trs = {.start = node->first, .end = graphToInt(result.g), .type = transfo.name, .desc = result.desc};
                 toAdd.push_back(trs);
             }
         }
@@ -358,11 +367,11 @@ void computeTransformations(int threadNum, int start, int inc)
             addTransfos(toAdd, objects, threadNum);
             if (threadNum == 0)
             {
-                fprintf(stderr, "%3d%%\n", n * 100 / nodes.size());
+                fprintf(stderr, "%3d%%\n", n * 100 / graphs.size());
             }
         }
         n += inc;
-        if (n < nodes.size())
+        if (n < graphs.size())
         {
             std::advance(node, inc);
         }

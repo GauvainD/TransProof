@@ -41,7 +41,8 @@ protected :
     bool firstRel;
     jstring resTrs;
     jstring orderTrs;
-    jstring label;
+    jstring graphLabel;
+    jstring nodeLabel;
 
     void initEnv(int threadNum, JNIEnv *env)
     {
@@ -184,7 +185,8 @@ public :
         threads = 0;
         firstRel = true;
         initInserter();
-        label = envs[0].env->NewStringUTF("GRAPH");
+        graphLabel = envs[0].env->NewStringUTF("GRAPH");
+        nodeLabel = envs[0].env->NewStringUTF("FILTERED");
         resTrs = envs[0].env->NewStringUTF("g");
         orderTrs = envs[0].env->NewStringUTF("order");
         envs[0].env->NewGlobalRef(inserter);
@@ -236,11 +238,19 @@ public :
         //fprintf(stderr, "test %d\n", threadNum);
     }
 
-    jlong createNode(int threadNum, std::map<std::string, struct invariant_value> props)
+    jlong createNode(int threadNum, std::map<std::string, struct invariant_value> props, bool isGraph)
     {
         struct jnienv env = envs[threadNum];
         fillMap(env, hashmap, props);
-        jlong n = env.env->CallStaticLongMethod(env.main, env.makenode, inserter, hashmap, label);
+        jlong n;
+        if (isGraph)
+        {
+            n = env.env->CallStaticLongMethod(env.main, env.makenode, inserter, hashmap, graphLabel);
+        }
+        else
+        {
+            n = env.env->CallStaticLongMethod(env.main, env.makenode, inserter, hashmap, nodeLabel);
+        }
         return n;
     }
 

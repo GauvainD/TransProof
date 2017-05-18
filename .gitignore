@@ -4,4 +4,5 @@ lib/
 *.csv
 *.o
 *.class
+*.log
 transproof
