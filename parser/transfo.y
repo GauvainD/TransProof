@@ -1,6 +1,10 @@
+%code requires {
+#include <string>
+using namespace std;
+}
+
 %{
 #include <iostream>
-using namespace std;
 
 extern "C" int yylex();
 extern "C" int yyparse();
@@ -18,6 +22,8 @@ void yyerror(const char *s);
 %token <ival> INT;
 %token <fval> FLOAT;
 %token <sval> STRING;
+%token LET
+%token EQ
 %token AND
 %left MULOP
 %left ADDOP
@@ -29,8 +35,16 @@ transfoset:
           transfoset transfo
           | transfo
           ;
+defset:
+      defset ',' def
+      | def
+      ;
+def:
+   LET arg EQ exprs
+   ;
 transfo:
-       transfofunction ':' transfoconds ';'
+       defset ',' transfofunction ':' transfoconds ';'
+       | transfofunction ':' transfoconds ';'
        ;
 transfofunction:
                STRING '(' argset ')'
@@ -68,7 +82,8 @@ simexprs:
         | exprfonc
         ;
 exprfonc:
-        STRING '(' funcargs ')'
+        STRING '(' ')'
+        | STRING '(' funcargs ')'
         ;
 funcargs:
         funcargs ',' funcarg
