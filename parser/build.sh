@@ -1,4 +1,4 @@
 #!/bin/zsh
-bison -d transfo.y
-flex transfo.l
-g++ transfo.tab.c lex.yy.c -lfl -o parser
+bison -d myparser.yy
+flex myscanner.ll
+g++ parser.cpp mydriver.hpp myparser.tab.cc lex.yy.c -lfl -o parser
