@@ -1,0 +1,8 @@
+let n = order(),
+    let H = clique(n),
+    rotation(a,b,c) :
+        deg(a) > 2;
+
+        move(a,b,c,b) :
+            ecc(b) + ecc(a) < deg(b) and
+            deg(c) == 3;
