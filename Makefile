@@ -22,7 +22,7 @@ run: init Neo4jAdapter.class comptransproof
 ifneq ("$(wildcard test5.db/.)","")
 	rm -r test5.db
 endif
-	./transproof res5.csv
+	./transproof sigs5.csv
 
 test: init Neo4jAdapter.class comptest
 	./test
