@@ -50,6 +50,7 @@ map<unsigned long long int, jlong> graphs;
 node_list nodes;
 std::mutex mtx;
 Neo4jInserter neo;
+int ntr = 0;
 
 /**
  * Checks weither the given string is a graph in the g6 format
@@ -325,6 +326,7 @@ void addTransfos(vector<struct transfo_data_result> &transfos, map<string, jlong
             }
         }
         neo.addRelationship(threadNum, n1, n2, trs.type, gc, orderToInt(order, n));
+        ++ntr;
     }
     transfos.clear();
     mtx.unlock();
@@ -406,12 +408,12 @@ void initTransfos()
     addTransfo(removeEdge, "remove_edge");
     addTransfo(addEdge, "add_edge");
     addTransfo(slide, "slide");
-    addTransfo(moveEdge, "move");
-    addTransfo(moveDistinct, "move_distinct");
+    //addTransfo(moveEdge, "move");
+    addTransfo(moveDistinct, "move");
     addTransfo(detour, "detour");
     addTransfo(shortcut, "shortcut");
     addTransfo(twoOpt, "two_opt");
-    addTransfo(rotationAnthony, "rotAnthony");
+    //addTransfo(rotationAnthony, "rotAnthony");
 }
 
 int main(int argc, char *argv[])
@@ -450,4 +452,5 @@ int main(int argc, char *argv[])
     {
         threads[i].join();
     }
+    std::cout << "total : " << ntr << "\n";
 }

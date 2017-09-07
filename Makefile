@@ -17,12 +17,27 @@ VPATH = $(java_dir):$(build_dir)
 .PHONY: default init clean
 
 default : init Neo4jAdapter.class comptransproof run
+#default: rundup
+
+runsg: compsg
+	./subgraphtrs
+
+compsg: subgraphtrs.cpp
+	rm -f subgraphtrs
+	g++ -std=c++11 -g -o subgraphtrs subgraphtrs.cpp -lnauty
+
+rundup: compdup
+	./testdup
+
+compdup: subgraphtrs.cpp
+	rm -f testdup
+	g++ -std=c++11 -g -o testdup test-duplicates.cpp -lnauty
 
 run: init Neo4jAdapter.class comptransproof
 ifneq ("$(wildcard test5.db/.)","")
 	rm -r test5.db
 endif
-	./transproof res5.csv
+	./transproof sigs5.csv
 
 test: init Neo4jAdapter.class comptest
 	./test
