@@ -11,6 +11,7 @@ empty=
 space=$(empty) $(empty)
 
 classpath = $(build_dir):$(subst $(space),:,$(wildcard $(lib_dir)/*.jar))
+cpcmd = "-Djava.class.path=$(classpath)"
 
 VPATH = $(java_dir):$(build_dir)
 
@@ -51,9 +52,11 @@ valgrind:
 
 comptest: test.cpp
 	g++ -std=c++11 $(jnipath) -L/usr/bin/java -L/usr/lib/jvm/java-8-openjdk/jre/lib/amd64/server/ -Llib -o test test.cpp
+	g++ -std=c++11 -g $(jnipath) -DCPCMD='$(cpcmd)' -Iphoeg/src -Lphoeg/src -L/usr/bin/java -L/usr/lib/jvm/java-8-openjdk/jre/lib/amd64/server/ -Llib -o transproof transproof.cpp -ljvm -pthread -lnauty
 
 comptransproof: transproof.cpp
-	g++ -std=c++11 -g $(jnipath) -Iphoeg/src -Lphoeg/src -L/usr/bin/java -L/usr/lib/jvm/java-8-openjdk/jre/lib/amd64/server/ -Llib -o transproof transproof.cpp -ljvm -pthread -lnauty
+	#g++ -std=c++11 -g $(jnipath) -Iphoeg/src -Lphoeg/src -L/usr/bin/java -L/usr/lib/jvm/java-8-openjdk/jre/lib/amd64/server/ -Llib -o transproof transproof.cpp -ljvm -pthread -lnauty
+	g++ -std=c++11 -g $(jnipath) -DCPCMD='$(cpcmd)' -Iphoeg/src -Lphoeg/src -L/usr/lib/jvm/java-8-openjdk/jre/lib/amd64/server/ -Llib -o transproof transproof.cpp -ljvm -pthread -lnauty
 
 comppathshow: utils/pathshow.cpp
 	g++ -std=c++11 -g -Llib -I. -o pathshow utils/pathshow.cpp nauty.h -pthread -lnauty
