@@ -2,5 +2,5 @@
 
 This is a temporary repository to make developpment easier.
 
-This project intend to provide an module to phoeg.
+This project intend to provide an module to [phoeg](https://github.com/antegallya/phoeg).
 Its goal is to help researcher find transformations for proofs by transformations in extremal graph theory.
