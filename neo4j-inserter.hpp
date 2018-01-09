@@ -7,8 +7,10 @@
 #include <iostream>
 
 #include "filter_test.hpp"
+#include "inserter.hpp"
 
-struct jnienv {
+struct jnienv
+{
     JNIEnv *env;
     jclass boolean;
     jmethodID boolconst;
@@ -27,7 +29,8 @@ struct jnienv {
     jmethodID longconstr;
 };
 
-class Neo4jInserter {
+class Neo4jInserter : public TransProofInserter
+{
 protected :
 
     JavaVM *jvm;
@@ -44,7 +47,8 @@ protected :
 
     void initEnv(int threadNum, JNIEnv *env)
     {
-        if (envs.size() <= threadNum) {
+        if (envs.size() <= threadNum)
+        {
             struct jnienv envstr;
             envstr.env = env;
             envstr.boolean = env->FindClass("java/lang/Boolean");
@@ -120,15 +124,18 @@ protected :
     jobject convertToObject(struct jnienv &env, struct invariant_value value)
     {
         jobject new_val;
-        switch (value.type) {
+        switch (value.type)
+        {
         case STRING :
             new_val = env.env->NewStringUTF(boost::get<std::string>(value.val).c_str());
             break;
         case BOOL :
-            if (boost::get<bool>(value.val)) {
+            if (boost::get<bool>(value.val))
+            {
                 new_val = env.env->NewObject(env.boolean, env.boolconst, JNI_TRUE);
             }
-            else {
+            else
+            {
                 new_val = env.env->NewObject(env.boolean, env.boolconst, JNI_FALSE);
             }
             break;
@@ -147,7 +154,8 @@ protected :
     void fillMap(struct jnienv &env, jobject &hashmap, const std::map<std::string, struct invariant_value> &props)
     {
         env.env->CallVoidMethod(hashmap, env.clear);
-        for (auto pair : props) {
+        for (auto pair : props)
+        {
             jstring key = env.env->NewStringUTF(pair.first.c_str());
             jobject value = convertToObject(env, pair.second);
             env.env->CallObjectMethod(hashmap, env.put, key, value);
@@ -158,7 +166,8 @@ protected :
 
     jobject makeType(struct jnienv &env, std::string type)
     {
-        if (!relTypes.count(type)) {
+        if (!relTypes.count(type))
+        {
             jobject t = env.env->CallStaticObjectMethod(env.types, env.withname, env.env->NewStringUTF(type.c_str()));
             env.env->NewGlobalRef(t);
             relTypes.emplace(type, t);
@@ -212,7 +221,7 @@ public :
         firstRel = other.firstRel;
     }
 
-    int attach()
+    int attach() override
     {
         threads++;
         JNIEnv *env;
@@ -221,7 +230,7 @@ public :
         return threads;
     }
 
-    void detach(int threadNum)
+    void detach(int threadNum) override
     {
         //fprintf(stderr, "test %d\n", threadNum);
         jvm->DetachCurrentThread();
@@ -230,21 +239,23 @@ public :
         //fprintf(stderr, "test %d\n", threadNum);
     }
 
-    jlong createNode(int threadNum, std::map<std::string, struct invariant_value> props, bool isGraph)
+    jlong createNode(int threadNum, std::map<std::string, struct invariant_value> props, bool isGraph) override
     {
         struct jnienv env = envs[threadNum];
         fillMap(env, hashmap, props);
         jlong n;
-        if (isGraph) {
+        if (isGraph)
+        {
             n = env.env->CallStaticLongMethod(env.main, env.makenode, inserter, hashmap, graphLabel);
         }
-        else {
+        else
+        {
             n = env.env->CallStaticLongMethod(env.main, env.makenode, inserter, hashmap, nodeLabel);
         }
         return n;
     }
 
-    void addRelationship(int threadNum, jlong n1, jlong n2, std::string type, jlong g, jlong order)
+    void addRelationship(int threadNum, jlong n1, jlong n2, std::string type, jlong g, jlong order) override
     {
         struct jnienv env = envs[threadNum];
         env.env->CallLongMethod(hashmap, env.clear);
@@ -261,14 +272,15 @@ public :
         env.env->CallLongMethod(hashmap, env.clear);
     }
 
-    void finish()
+    void finish() override
     {
         jclass inserterClass = envs[0].env->FindClass("org/neo4j/unsafe/batchinsert/BatchInserter");
         jmethodID shutdown = envs[0].env->GetMethodID(inserterClass, "shutdown", "()V");
         envs[0].env->CallVoidMethod(inserter, shutdown);
         envs[0].env->DeleteGlobalRef(inserter);
         envs[0].env->DeleteGlobalRef(hashmap);
-        for (auto elem : relTypes) {
+        for (auto elem : relTypes)
+        {
             envs[0].env->DeleteGlobalRef(elem.second);
         }
         fprintf(stderr, "destroying jvm\n");
