@@ -404,9 +404,9 @@ void initTransfos()
 {
     //Vector containing the transformation functions.
     //Add your transformations here
-    addTransfo(rotation, "rotation");
-    addTransfo(removeEdge, "remove_edge");
-    addTransfo(addEdge, "add_edge");
+    //addTransfo(rotation, "rotation");
+    //addTransfo(removeEdge, "remove_edge");
+    //addTransfo(addEdge, "add_edge");
     addTransfo(slide, "slide");
     //addTransfo(moveEdge, "move");
     addTransfo(moveDistinct, "move");
