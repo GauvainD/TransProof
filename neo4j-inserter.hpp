@@ -110,7 +110,7 @@ protected :
         jmethodID mkinserter = envs[0].env->GetStaticMethodID(inserters, "inserter", "(Ljava/io/File;)Lorg/neo4j/unsafe/batchinsert/BatchInserter;");
         jclass fileJava = envs[0].env->FindClass("java/io/File");
         jmethodID fileInit = envs[0].env->GetMethodID(fileJava, "<init>", "(Ljava/lang/String;)V");
-        jstring fileName = envs[0].env->NewStringUTF("test5.db");
+        jstring fileName = envs[0].env->NewStringUTF(OUTPUTDB);
         jobject fileInst = envs[0].env->NewObject(fileJava, fileInit, fileName);
         initInserterConfig();
         inserter = envs[0].env->CallObjectMethod(inserters, mkinserter, fileInst, hashmap);
