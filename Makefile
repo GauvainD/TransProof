@@ -6,7 +6,7 @@ jre_server = $(jdkpath)/jre/lib/amd64/server/
 
 #both can be set from commandline
 output_db = test5.db
-intput_file = sigs5.csv
+input_file = sigs5.csv
 
 empty=
 space = $(empty) $(empty)
@@ -28,7 +28,7 @@ run: $(exec)
 
 runtransproof: transproof
 	$(RM) -r $(output_db)
-	./transproof $(intput_file)
+	./transproof $(input_file)
 
 
 %.class : %.java
