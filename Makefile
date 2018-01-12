@@ -5,7 +5,7 @@ jdkpath = /usr/lib/jvm/java-8-openjdk/
 jre_server = $(jdkpath)/jre/lib/amd64/server/
 
 #both can be set from commandline
-output_db = test5.db
+output_db = test5
 input_file = sigs5.csv
 
 empty=
@@ -13,10 +13,10 @@ space = $(empty) $(empty)
 classpath = .:$(subst $(space),:,$(wildcard $(lib_dir)/*.jar))
 cpcmd = "-Djava.class.path=$(classpath)"
 
-INCFLAGS = -I$(phoeg_dir) -I$(jdkpath)include/ -I$(jdkpath)include/linux
-CXXFLAGS = -std=c++11 -g -DCPCMD='$(cpcmd)' -DOUTPUTDB='"$(output_db)"' $(INCFLAGS)
+INCFLAGS = -I$(phoeg_dir) -I$(jdkpath)include/ -I$(jdkpath)include/linux -I/usr/include/docopt/
+CXXFLAGS = -std=c++11 -g -DCPCMD='$(cpcmd)' $(INCFLAGS)
 LDFLAGS = -L$(phoeg_dir) -L$(jre_server) -L$(lib_dir)
-LDLIBS = -ljvm -pthread -lnauty
+LDLIBS = -ljvm -pthread -lnauty -ldocopt
 
 export LD_LIBRARY_PATH = $(jre_server)
 
@@ -28,7 +28,7 @@ run: $(exec)
 
 runtransproof: transproof
 	$(RM) -r $(output_db)
-	./transproof $(input_file)
+	./transproof --output=$(output_db) $(input_file)
 
 
 %.class : %.java

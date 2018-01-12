@@ -18,8 +18,18 @@
 #include "csv-inserter.hpp"
 #include "graph_bin.hpp"
 #include "csv-parser.hpp"
+#include <docopt.h>
 
 #define max(a,b) (a) > (b) ? (a) : (b)
+
+static const char USAGE[] =
+    R"(Transproof.
+
+usage: transproof --output=<output> [<input>...]
+
+--output=<output>  the file (or prefix) to use as output
+<input>        the files to use as input
+)";
 
 using namespace std;
 using namespace phoeg;
@@ -200,14 +210,17 @@ void initTransfos()
 
 int main(int argc, char *argv[])
 {
-    //neo = make_shared<Neo4jInserter>();
-    neo = make_shared<CsvInserter>();
+    map<string,docopt::value> args = docopt::docopt(USAGE, {argv+1,argv+argc},true,"Transproof 0.3");
+    string output = args["--output"].asString();
+    neo = make_shared<CsvInserter>(output);
+    //neo = make_shared<Neo4jInserter>(output);
     vector<string> keys;
-    if (argc > 1) {
+    auto inputs = args["<input>"].asStringList();
+    if (inputs.size() > 0) {
         auto cinbuf = cin.rdbuf();
-        for (int i = 1; i < argc; i++) {
-            cerr << "loading file " << argv[i] << endl;
-            ifstream f(argv[i]);
+        for (int i = 0; i < inputs.size(); i++) {
+            cerr << "loading file " << inputs[i] << endl;
+            ifstream f(inputs[i]);
             cin.rdbuf(f.rdbuf());
             loadGraphs(keys, nodes, objects);
             f.close();

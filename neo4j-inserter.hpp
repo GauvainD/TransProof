@@ -44,6 +44,7 @@ protected :
     jstring orderTrs;
     jstring graphLabel;
     jstring nodeLabel;
+    std::string output;
 
     void initEnv(int threadNum, JNIEnv *env)
     {
@@ -114,7 +115,7 @@ protected :
         jmethodID mkinserter = envs[0].env->GetStaticMethodID(inserters, "inserter", "(Ljava/io/File;)Lorg/neo4j/unsafe/batchinsert/BatchInserter;");
         jclass fileJava = envs[0].env->FindClass("java/io/File");
         jmethodID fileInit = envs[0].env->GetMethodID(fileJava, "<init>", "(Ljava/lang/String;)V");
-        jstring fileName = envs[0].env->NewStringUTF(OUTPUTDB);
+        jstring fileName = envs[0].env->NewStringUTF(output.c_str());
         jobject fileInst = envs[0].env->NewObject(fileJava, fileInit, fileName);
         initInserterConfig();
         inserter = envs[0].env->CallObjectMethod(inserters, mkinserter, fileInst, hashmap);
@@ -177,8 +178,9 @@ protected :
 
 public :
 
-    Neo4jInserter()
+    Neo4jInserter(std::string output)
     {
+        this->output = output;
         initJVM();
         jclass mapClass = envs[0].env->FindClass("java/util/HashMap");
         jmethodID mapInit = envs[0].env->GetMethodID(mapClass, "<init>", "()V");
@@ -203,6 +205,7 @@ public :
         hashmap = other.hashmap;
         threads = other.threads;
         firstRel = other.firstRel;
+        this->output = other.output;
     }
 
     ~Neo4jInserter()
@@ -219,6 +222,8 @@ public :
         hashmap = other.hashmap;
         threads = other.threads;
         firstRel = other.firstRel;
+        this->output = other.output;
+        return *this;
     }
 
     int attach() override
