@@ -5,7 +5,7 @@ jdkpath = /usr/lib/jvm/java-8-openjdk/
 jre_server = $(jdkpath)/jre/lib/amd64/server/
 
 #both can be set from commandline
-output_db = test5
+output_file = test5
 input_file = sigs5.csv
 
 empty=
@@ -27,8 +27,8 @@ run: $(exec)
 	./$(exec)
 
 runtransproof: transproof
-	$(RM) -r $(output_db)
-	./transproof --output=$(output_db) $(input_file)
+	$(RM) -r $(output_file)
+	./transproof --output=$(output_file) $(input_file)
 
 
 %.class : %.java
